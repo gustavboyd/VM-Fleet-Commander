@@ -49,8 +49,8 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-02-01' = {
   }
 }
 
-resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' = [for i in range(0,4): {
-  name: '${networkInterfaceName}${i}'
+resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' =  {
+  name: networkInterfaceName
   location: location
   properties: {
     ipConfigurations: [
@@ -73,11 +73,9 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' = [fo
     virtualNetwork
   ]
 }
-]
 
-@batchSize(1)
-resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = [for i in range(0,4): {
-  name: '${virtualMachineName}${i}'
+resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = {
+  name: virtualMachineName
   location: location
   properties: {
     hardwareProfile: {
@@ -101,7 +99,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = [for i 
     networkProfile: {
       networkInterfaces: [
         {
-          id: networkInterface[i].id
+          id: networkInterface.id
           properties: {
             deleteOption: nicDeleteOption
           }
@@ -112,7 +110,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = [for i 
       hibernationEnabled: false
     }
     osProfile: {
-      computerName: '${virtualMachineComputerName}${i}'
+      computerName: virtualMachineComputerName
       adminUsername: adminUsername
       adminPassword: adminPassword
       windowsConfiguration: {
@@ -131,6 +129,5 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = [for i 
     }
   }
 }
-]
 
 output adminUsername string = adminUsername
