@@ -13,12 +13,9 @@ param subnets array = [{
     addressPrefix: '10.0.0.0/24'
   }
 }]
-param publicIpAddressName string = 'vmfleetcommander-ip'
-param publicIpAddressType string = 'Static'
-param publicIpAddressSku string = 'Standard'
-param pipDeleteOption string = 'Detach'
+
 param virtualMachineName string = 'vmfleetcommander'
-param virtualMachineComputerName string = 'vmfleetcommande'
+param virtualMachineComputerName string = 'vmfleetcommand'
 param osDiskType string = 'Premium_LRS'
 param osDiskDeleteOption string = 'Delete'
 param virtualMachineSize string = 'Standard_B1s'
@@ -52,19 +49,8 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-02-01' = {
   }
 }
 
-resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2020-08-01' = {
-  name: publicIpAddressName
-  location: location
-  properties: {
-    publicIPAllocationMethod: publicIpAddressType
-  }
-  sku: {
-    name: publicIpAddressSku
-  }
-}
-
-resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' = {
-  name: networkInterfaceName
+resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' = [for i in range(0,4): {
+  name: '${networkInterfaceName}${i}'
   location: location
   properties: {
     ipConfigurations: [
@@ -75,12 +61,6 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' = {
             id: subnetRef
           }
           privateIPAllocationMethod: 'Dynamic'
-          publicIPAddress: {
-            id: resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', publicIpAddressName)
-            properties: {
-              deleteOption: pipDeleteOption
-            }
-          }
         }
       }
     ]
@@ -91,12 +71,13 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2023-09-01' = {
   dependsOn: [
     networkSecurityGroup
     virtualNetwork
-    publicIPAddress
   ]
 }
+]
 
-resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = {
-  name: virtualMachineName
+@batchSize(1)
+resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = [for i in range(0,4): {
+  name: '${virtualMachineName}${i}'
   location: location
   properties: {
     hardwareProfile: {
@@ -120,7 +101,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = {
     networkProfile: {
       networkInterfaces: [
         {
-          id: networkInterface.id
+          id: networkInterface[i].id
           properties: {
             deleteOption: nicDeleteOption
           }
@@ -131,7 +112,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = {
       hibernationEnabled: false
     }
     osProfile: {
-      computerName: virtualMachineComputerName
+      computerName: '${virtualMachineComputerName}${i}'
       adminUsername: adminUsername
       adminPassword: adminPassword
       windowsConfiguration: {
@@ -150,5 +131,6 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2023-09-01' = {
     }
   }
 }
+]
 
 output adminUsername string = adminUsername
