@@ -18,7 +18,6 @@ param virtualMachineName string = 'vmfleetcommander'
 param virtualMachineComputerName string = 'vmfleetcommand'
 param osDiskType string = 'Premium_LRS'
 param osDiskDeleteOption string = 'Delete'
-param virtualMachineSize string = 'Standard_B1s'
 param nicDeleteOption string = 'Detach'
 param adminUsername string = 'gustavboyd'
 param patchMode string = 'AutomaticByOS'
@@ -26,6 +25,14 @@ param enableHotpatching bool = false
 
 @secure()
 param adminPassword string
+
+@allowed([
+  'nonprod'
+  'prod'
+])
+param environmentType string
+
+var virtualMachineSize = (environmentType == 'prod') ? 'Standard_B2s' : 'Standard_B1s'
 
 module virtualNetwork 'modules/networkInterface.bicep' = {
   name: 'virtualNetworks'
