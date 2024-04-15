@@ -10,22 +10,22 @@ param subnets array
 var nsgID = resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', networkSecurityGroupName)
 var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, subnetName)
 
-resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2020-05-01' = {
-  name: networkSecurityGroupName
-  location: location
-  properties: {
-    securityRules: networkSecurityGroupRules
+module networkSecurityGroup 'networkSecurityGroup.bicep' = {
+  name: 'networkSecurityGroup'
+  params: {
+    location: location
+    networkSecurityGroupName: networkSecurityGroupName
+    networkSecurityGroupRules: networkSecurityGroupRules
   }
 }
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-02-01' = {
-  name: virtualNetworkName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: addressPrefixes
-    }
+module virtualNetwork 'virtualNetwork.bicep' = {
+  name: 'virtualNetwork'
+  params: {
+    addressPrefixes: addressPrefixes
+    location: location
     subnets: subnets
+    virtualNetworkName: virtualNetworkName
   }
 }
 

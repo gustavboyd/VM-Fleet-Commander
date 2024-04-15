@@ -27,8 +27,8 @@ param enableHotpatching bool = false
 @secure()
 param adminPassword string
 
-module virtualNetwork 'modules/virtualNetwork.bicep' = {
-  name: 'virtualNetwork'
+module virtualNetwork 'modules/networkInterface.bicep' = {
+  name: 'virtualNetworks'
   params: {
     addressPrefixes: addressPrefixes
     location: location
